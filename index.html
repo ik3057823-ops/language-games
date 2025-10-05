@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Uncountable Nouns Finder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#ffffff; /* white by default */
+      --ink:#0e0f12;
+      --accent:#6c5ce7;
+      --accent-2:#00d1ff;
+      --good:#00c853;
+      --bad:#ff1744;
+      --muted:#dfe6e9;
+      --glass: rgba(255,255,255,0.8);
+    }
+    *{box-sizing:border-box}
+    body{ margin:0; background:var(--bg); color:var(--ink); font-family: Nunito, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; }
+    header{ display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem clamp(1rem,3vw,2rem); position:sticky; top:0; z-index:10; background:linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.75)); backdrop-filter: blur(8px); border-bottom:1px solid var(--muted);}    
+    .brand{display:flex; align-items:center; gap:.8rem}
+    .brand .logo{ width:42px; height:42px; border-radius:12px; display:grid; place-items:center; background: radial-gradient(circle at 30% 30%, var(--accent-2), var(--accent)); color:white; font-family: "Press Start 2P"; font-size: .9rem; box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+    .brand h1{font-size:clamp(1rem, 2.5vw, 1.4rem); margin:0; font-weight:900}
+    .controls{display:flex; gap:.5rem; flex-wrap:wrap; align-items:center}
+    button{ border:0; padding:.75rem 1rem; border-radius:999px; cursor:pointer; font-weight:800; background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:white; box-shadow: 0 8px 24px rgba(108,92,231,.35); transition: transform .06s ease, box-shadow .2s ease, opacity .2s ease; user-select:none; }
+    button.secondary{ background:linear-gradient(135deg, #b2bec3, #636e72); box-shadow:0 8px 24px rgba(99,110,114,.25); }
+    button:hover{ transform: translateY(-1px); }
+    button:active{ transform: translateY(0); }
+
+    main{ max-width: min(1100px, 95vw); margin: 1rem auto 4rem; padding: 0 1rem; }
+
+    .hud{ display:grid; grid-template-columns: 1fr auto; gap:.5rem 1rem; align-items:center; background:var(--glass); border:1px solid var(--muted); padding:.75rem 1rem; border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,.06); }
+    .progress-wrap{ grid-column: 1 / -1; }
+    .progress{ position:relative; height:16px; background:#ecf0f1; border-radius:999px; overflow:hidden; border:1px solid var(--muted); }
+    .progress .bar{ position:absolute; top:0; left:0; height:100%; width:0%; background: linear-gradient(90deg, var(--good), #9cffb5); transition: width .4s ease; }
+    .attempts{ font-weight:900; }
+    .attempts.low{ color: var(--bad); }
+
+    .game-wrap{ margin-top:1rem; position:relative; border-radius:18px; overflow:hidden; border:1px solid var(--muted); box-shadow:0 16px 50px rgba(0,0,0,.08); background:white; }
+    .stage{ position:relative; width:100%; aspect-ratio: 16 / 9; background:#f8fafc; }
+    .stage img{ width:100%; height:100%; object-fit:cover; display:block; user-select:none; pointer-events:none; }
+    .overlay{ position:absolute; inset:0; cursor: pointer; }
+
+    .toast{ position: fixed; left:50%; transform:translateX(-50%); bottom: 24px; background:white; border:1px solid var(--muted); padding:.8rem 1rem; border-radius:12px; box-shadow: 0 12px 36px rgba(0,0,0,.12); font-weight:800; z-index:100; display:none; }
+    .toast.show{ display:block; }
+
+    .panel{ margin-top:.75rem; display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
+    .win, .lose{ display:none; font-weight:900; }
+    .win.show, .lose.show{ display:inline-block; }
+
+    /* Pop-up modal for feedback and intro */
+    .modal{ position: fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,.45); z-index:200; }
+    .modal.open{ display:flex; }
+    .card{ background:white; width:min(560px, 92vw); border-radius:16px; padding:1rem; border:1px solid var(--muted); box-shadow:0 16px 50px rgba(0,0,0,.18); }
+    .card h2{ margin:.25rem 0 .5rem; }
+    .card p{ margin:.25rem 0 .75rem; }
+    .row{ display:flex; gap:.5rem; align-items:center; justify-content:flex-end; flex-wrap:wrap; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">UN</div>
+      <h1>Uncountable Nouns Finder</h1>
+    </div>
+    <div class="controls">
+      <button id="startBtn">Start Game</button>
+      <button class="secondary" id="resetBtn">Reset</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="hud">
+      <div class="attempts" id="attempts">Attempts: 5</div>
+      <div class="progress-wrap">
+        <div class="progress"><div class="bar" id="bar"></div></div>
+      </div>
+    </div>
+
+    <div class="game-wrap">
+      <div class="stage" id="stage">
+        <img id="scene" src="https://raw.githubusercontent.com/ik3057823-ops/images-5/refs/heads/main/living%20room.png" alt="Scene" crossorigin="anonymous" />
+        <div class="overlay" id="overlay" aria-label="Click items in the image"></div>
+      </div>
+    </div>
+
+    <div class="panel" aria-live="polite">
+      <span class="win" id="win">🎉 You found all uncountables!</span>
+      <span class="lose" id="lose">😵 Out of attempts. Try again.</span>
+    </div>
+  </main>
+
+  <!-- Intro & Feedback Modal (reused) -->
+  <div class="modal" id="modal">
+    <div class="card" id="modalCard">
+      <h2 id="modalTitle">How to play</h2>
+      <p id="modalBody">Click on things in the picture to find three <strong>uncountable</strong> nouns. You have <strong>five</strong> clicks. The progress bar fills as you find them. After each click, you’ll see quick feedback — tap <em>Continue</em> to keep playing.</p>
+      <div class="row">
+        <button id="modalClose">Start</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const overlay = document.getElementById('overlay');
+  const stage = document.getElementById('stage');
+  const attemptsEl = document.getElementById('attempts');
+  const bar = document.getElementById('bar');
+  const toast = document.getElementById('toast');
+  const winEl = document.getElementById('win');
+  const loseEl = document.getElementById('lose');
+  const startBtn = document.getElementById('startBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  const modal = document.getElementById('modal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalBody = document.getElementById('modalBody');
+  const modalClose = document.getElementById('modalClose');
+
+  // Game state
+  const attemptsMax = 5;
+  let attempts = attemptsMax;
+  let found = new Set();
+  let playing = false;
+
+  // Invisible target regions (percent of stage) for three uncountables.
+  // These are approximate and tailored to the provided living-room image.
+  // Feel free to tweak the numbers below if needed.
+  const targets = [
+    { id:'U1', label:'uncountable', x:60, y:60, w:12, h:14 }, // food area on table
+    { id:'U2', label:'uncountable', x:34, y:56, w:9, h:12 },  // money-like area (e.g., wallet/notes)
+    { id:'U3', label:'uncountable', x:57, y:52, w:6, h:10 }   // salt-like area (small shaker)
+  ];
+
+  function setAttempts(n){
+    attempts = n; attemptsEl.textContent = `Attempts: ${attempts}`; 
+    attemptsEl.classList.toggle('low', attempts <= 1);
+  }
+  function setProgress(){
+    const pct = (found.size / targets.length) * 100; bar.style.width = pct + '%';
+  }
+  function showToast(msg){
+    toast.textContent = msg; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'), 900);
+  }
+
+  function percentToPx(box){
+    const rect = overlay.getBoundingClientRect();
+    return { left: box.x/100*rect.width, top: box.y/100*rect.height, width: box.w/100*rect.width, height: box.h/100*rect.height };
+  }
+  function hitTest(clientX, clientY, box){
+    const rect = overlay.getBoundingClientRect();
+    const x = clientX - rect.left, y = clientY - rect.top;
+    const px = percentToPx(box);
+    return x>=px.left && x<=px.left+px.width && y>=px.top && y<=px.top+px.height;
+  }
+
+  function openModal(title, body, buttonText='Continue'){
+    modalTitle.textContent = title; modalBody.innerHTML = body; modal.classList.add('open'); modalClose.textContent = buttonText;
+  }
+  function closeModal(){ modal.classList.remove('open'); }
+
+  function checkWin(){ if(found.size===targets.length){ playing=false; winEl.classList.add('show'); loseEl.classList.remove('show'); openModal('Great job!','You found all <strong>uncountable</strong> nouns. 🎉','Play again'); } }
+  function lose(){ playing=false; loseEl.classList.add('show'); winEl.classList.remove('show'); openModal('Out of attempts','No more clicks left. Give it another go!','Try again'); }
+
+  // Intro modal on load
+  openModal('How to play','Click on things in the picture to find three <strong>uncountable</strong> nouns. You have <strong>five</strong> clicks. The progress bar fills as you find them. After each click, you’ll see quick feedback — tap <em>Continue</em> to keep playing.','Start');
+
+  modalClose.addEventListener('click', ()=>{
+    if(!playing && (found.size===targets.length || attempts<=0)){
+      // Restart from modal CTA
+      startGame();
+    }
+    closeModal();
+  });
+
+  function startGame(){
+    playing = true; setAttempts(attemptsMax); found.clear(); setProgress();
+    winEl.classList.remove('show'); loseEl.classList.remove('show');
+    showToast('Game started!');
+  }
+
+  startBtn.addEventListener('click', startGame);
+  resetBtn.addEventListener('click', ()=>{ startGame(); });
+
+  overlay.addEventListener('click', (e)=>{
+    if(!playing){ openModal('Tap Start','Press <strong>Start Game</strong> to begin.'); return; }
+    if(found.size===targets.length) return;
+
+    let gotOne = false; let targetId = null;
+    for(const t of targets){
+      if(found.has(t.id)) continue;
+      if(hitTest(e.clientX, e.clientY, t)){ gotOne = true; targetId = t.id; break; }
+    }
+
+    if(gotOne){
+      found.add(targetId); setProgress();
+      openModal('Correct','That is an <strong>uncountable</strong> noun. Nice find!');
+      checkWin();
+    } else {
+      setAttempts(attempts-1);
+      if(attempts<=0){ lose(); }
+      else { openModal('Not this one','This looks like a <strong>countable</strong> thing (e.g., a table, sofa, or lamp). Keep exploring!'); }
+    }
+  });
+
+  // Keep coordinates responsive
+  const resizeObserver = new ResizeObserver(()=>{});
+  resizeObserver.observe(stage);
+})();
+</script>
+</body>
+</html>
