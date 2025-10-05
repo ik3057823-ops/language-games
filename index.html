@@ -67,43 +67,48 @@
             background: #6b7280;
         }
 
+        .intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         .intro-screen {
-            max-width: 800px;
-            margin: 50px auto;
             background: white;
-            padding: 60px;
+            padding: 50px;
             border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             text-align: center;
+            max-width: 500px;
+            animation: slideIn 0.3s;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
 
         .intro-screen h2 {
             color: #1f2937;
-            margin-bottom: 30px;
-            font-size: 32px;
+            margin-bottom: 25px;
+            font-size: 28px;
         }
 
         .intro-screen p {
-            font-size: 18px;
-            line-height: 1.8;
+            font-size: 16px;
+            line-height: 1.6;
             color: #4b5563;
-            margin-bottom: 20px;
-        }
-
-        .intro-screen .goal {
-            background: #fef3c7;
-            padding: 25px;
-            border-radius: 12px;
-            margin: 30px 0;
-            border-left: 4px solid #f59e0b;
+            margin-bottom: 15px;
         }
 
         .start-btn {
             background: #3b82f6;
             color: white;
             border: none;
-            padding: 16px 50px;
-            font-size: 18px;
+            padding: 14px 40px;
+            font-size: 16px;
             border-radius: 8px;
             cursor: pointer;
             transition: background 0.2s;
@@ -116,7 +121,6 @@
         }
 
         .game-screen {
-            display: none;
             max-width: 1400px;
             margin: 0 auto;
             padding: 30px;
@@ -202,11 +206,82 @@
             position: absolute;
             cursor: pointer;
             transition: all 0.2s;
-            border-radius: 8px;
+            border: 3px dotted #d1d5db;
+            background: rgba(209, 213, 219, 0.3);
         }
 
         .clickable-area:hover {
-            background: rgba(59, 130, 246, 0.2);
+            background: rgba(59, 130, 246, 0.3);
+            border-color: #3b82f6;
+        }
+
+        .clickable-area.clicked {
+            border-color: #9ca3af;
+            background: rgba(156, 163, 175, 0.2);
+        }
+
+        .clickable-area.sofa {
+            border-radius: 30px 30px 15px 15px;
+        }
+
+        .clickable-area.window {
+            border-radius: 8px;
+        }
+
+        .clickable-area.plant {
+            border-radius: 50% 50% 30% 30%;
+        }
+
+        .clickable-area.picture {
+            border-radius: 6px;
+        }
+
+        .clickable-area.lamp {
+            border-radius: 50% 50% 30% 30%;
+        }
+
+        .clickable-area.tv {
+            border-radius: 8px;
+        }
+
+        .clickable-area.mirror {
+            border-radius: 50%;
+        }
+
+        .clickable-area.shelf {
+            border-radius: 8px;
+        }
+
+        .clickable-area.armchair {
+            border-radius: 25px 25px 15px 15px;
+        }
+
+        .clickable-area.money {
+            border-radius: 4px;
+        }
+
+        .clickable-area.table {
+            border-radius: 50%;
+        }
+
+        .clickable-area.ottoman {
+            border-radius: 50% 50% 30% 30%;
+        }
+
+        .clickable-area.diningTable {
+            border-radius: 12px;
+        }
+
+        .clickable-area.chair {
+            border-radius: 8px;
+        }
+
+        .clickable-area.food {
+            border-radius: 50%;
+        }
+
+        .clickable-area.salt {
+            border-radius: 4px 4px 8px 8px;
         }
 
         .modal {
@@ -284,18 +359,14 @@
         <button class="reset-btn" onclick="location.reload()">Reset</button>
     </div>
 
-    <div class="intro-screen" id="introScreen">
-        <h2>🎯 Welcome to Uncountable Nouns Finder!</h2>
-        <p>Your mission is to find <strong>3 uncountable nouns</strong> hidden in the living room scene.</p>
-        <div class="goal">
-            <p><strong>What are Uncountable Nouns?</strong></p>
-            <p>These are things that cannot be counted individually, like water, money, or food.</p>
-            <p><strong>Hint:</strong> Look for <strong>food</strong>, <strong>money</strong>, and <strong>salt</strong> in the image!</p>
+    <div class="intro-overlay" id="introOverlay">
+        <div class="intro-screen">
+            <h2>🎯 Find the Uncountable Nouns!</h2>
+            <p>Click on items in the living room to find <strong>3 uncountable nouns</strong>.</p>
+            <p>You have <strong>5 attempts</strong>. Choose wisely!</p>
+            <p><strong>Hint:</strong> Look for food, money, and salt.</p>
+            <button class="start-btn" onclick="startGame()">Start Game</button>
         </div>
-        <p>🖱️ <strong>How to Play:</strong> Click on different items in the image to check if they are countable or uncountable.</p>
-        <p>⚠️ <strong>Be Careful:</strong> You only have <strong>5 attempts</strong>, so think before you click!</p>
-        <p>📊 Track your progress with the indicators at the top of the screen.</p>
-        <button class="start-btn" onclick="startGame()">Start Game</button>
     </div>
 
     <div class="game-screen" id="gameScreen">
@@ -338,31 +409,30 @@
         const targetWords = 3;
 
         const items = {
-            sofa: { x: '5%', y: '45%', width: '35%', height: '30%', uncountable: false, name: 'Sofa' },
-            window: { x: '13%', y: '15%', width: '20%', height: '35%', uncountable: false, name: 'Window' },
-            plant1: { x: '15%', y: '30%', width: '8%', height: '15%', uncountable: false, name: 'Plant' },
-            plant2: { x: '24%', y: '25%', width: '8%', height: '12%', uncountable: false, name: 'Plant' },
-            picture1: { x: '35%', y: '25%', width: '10%', height: '12%', uncountable: false, name: 'Picture' },
-            picture2: { x: '42%', y: '22%', width: '10%', height: '15%', uncountable: false, name: 'Picture' },
-            lamp1: { x: '54%', y: '18%', width: '10%', height: '12%', uncountable: false, name: 'Lamp' },
-            lamp2: { x: '40%', y: '42%', width: '8%', height: '15%', uncountable: false, name: 'Lamp' },
-            tv: { x: '48%', y: '35%', width: '18%', height: '20%', uncountable: false, name: 'TV' },
-            mirror: { x: '67%', y: '22%', width: '10%', height: '15%', uncountable: false, name: 'Mirror' },
-            shelf: { x: '77%', y: '23%', width: '15%', height: '22%', uncountable: false, name: 'Shelf' },
-            armchair: { x: '75%', y: '50%', width: '20%', height: '25%', uncountable: false, name: 'Armchair' },
-            plant3: { x: '67%', y: '58%', width: '8%', height: '12%', uncountable: false, name: 'Plant' },
-            money: { x: '20%', y: '70%', width: '12%', height: '8%', uncountable: true, name: 'Money' },
-            table1: { x: '35%', y: '65%', width: '15%', height: '15%', uncountable: false, name: 'Table' },
-            ottoman: { x: '52%', y: '70%', width: '10%', height: '12%', uncountable: false, name: 'Ottoman' },
-            diningTable: { x: '65%', y: '75%', width: '20%', height: '15%', uncountable: false, name: 'Table' },
-            chair: { x: '85%', y: '78%', width: '12%', height: '18%', uncountable: false, name: 'Chair' },
-            food: { x: '70%', y: '78%', width: '15%', height: '8%', uncountable: true, name: 'Food' },
-            salt: { x: '68%', y: '72%', width: '4%', height: '6%', uncountable: true, name: 'Salt' }
+            sofa: { x: '5%', y: '45%', width: '35%', height: '30%', uncountable: false, name: 'Sofa', shape: 'sofa' },
+            window: { x: '13%', y: '15%', width: '20%', height: '35%', uncountable: false, name: 'Window', shape: 'window' },
+            plant1: { x: '15%', y: '30%', width: '8%', height: '15%', uncountable: false, name: 'Plant', shape: 'plant' },
+            plant2: { x: '24%', y: '25%', width: '8%', height: '12%', uncountable: false, name: 'Plant', shape: 'plant' },
+            picture1: { x: '35%', y: '25%', width: '10%', height: '12%', uncountable: false, name: 'Picture', shape: 'picture' },
+            picture2: { x: '42%', y: '22%', width: '10%', height: '15%', uncountable: false, name: 'Picture', shape: 'picture' },
+            lamp1: { x: '54%', y: '18%', width: '10%', height: '12%', uncountable: false, name: 'Lamp', shape: 'lamp' },
+            lamp2: { x: '40%', y: '42%', width: '8%', height: '15%', uncountable: false, name: 'Lamp', shape: 'lamp' },
+            tv: { x: '48%', y: '35%', width: '18%', height: '20%', uncountable: false, name: 'TV', shape: 'tv' },
+            mirror: { x: '67%', y: '22%', width: '10%', height: '15%', uncountable: false, name: 'Mirror', shape: 'mirror' },
+            shelf: { x: '77%', y: '23%', width: '15%', height: '22%', uncountable: false, name: 'Shelf', shape: 'shelf' },
+            armchair: { x: '75%', y: '50%', width: '20%', height: '25%', uncountable: false, name: 'Armchair', shape: 'armchair' },
+            plant3: { x: '67%', y: '58%', width: '8%', height: '12%', uncountable: false, name: 'Plant', shape: 'plant' },
+            money: { x: '20%', y: '70%', width: '12%', height: '8%', uncountable: true, name: 'Money', shape: 'money' },
+            table1: { x: '35%', y: '65%', width: '15%', height: '15%', uncountable: false, name: 'Table', shape: 'table' },
+            ottoman: { x: '52%', y: '70%', width: '10%', height: '12%', uncountable: false, name: 'Ottoman', shape: 'ottoman' },
+            diningTable: { x: '65%', y: '75%', width: '20%', height: '15%', uncountable: false, name: 'Table', shape: 'diningTable' },
+            chair: { x: '85%', y: '78%', width: '12%', height: '18%', uncountable: false, name: 'Chair', shape: 'chair' },
+            food: { x: '70%', y: '78%', width: '15%', height: '8%', uncountable: true, name: 'Food', shape: 'food' },
+            salt: { x: '68%', y: '72%', width: '4%', height: '6%', uncountable: true, name: 'Salt', shape: 'salt' }
         };
 
         function startGame() {
-            document.getElementById('introScreen').style.display = 'none';
-            document.getElementById('gameScreen').style.display = 'block';
+            document.getElementById('introOverlay').style.display = 'none';
             createClickableAreas();
         }
 
@@ -372,17 +442,18 @@
             for (let key in items) {
                 const item = items[key];
                 const area = document.createElement('div');
-                area.className = 'clickable-area';
+                area.className = 'clickable-area ' + item.shape;
                 area.style.left = item.x;
                 area.style.top = item.y;
                 area.style.width = item.width;
                 area.style.height = item.height;
-                area.onclick = () => checkItem(key, item);
+                area.dataset.key = key;
+                area.onclick = () => checkItem(key, item, area);
                 container.appendChild(area);
             }
         }
 
-        function checkItem(key, item) {
+        function checkItem(key, item, area) {
             if (attempts >= maxAttempts || wordsFound >= targetWords) return;
             if (foundItems.includes(key)) {
                 showFeedback('Already Checked!', `You already checked this ${item.name}.`, false);
@@ -391,6 +462,7 @@
 
             attempts++;
             foundItems.push(key);
+            area.classList.add('clicked');
             updateAttemptsBar();
 
             if (item.uncountable) {
